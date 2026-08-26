@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ma Boutique</title>
+    <link rel="stylesheet"href="style.css" >   
+</head>
+<body>
+    <header id="accueil">
+        <h1>Ma Boutique</h1>
+        <nav>
+            <ul>
+                <li><a href="#accueil">Accueil</a></li>
+                <li><a href="#produits">Produits</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <img src="panier.png" alt="Panier">
+            <span id="compteur">Panier : 0 article</span>
+            <div id="panier"></div>
+            <button class="btn"
+            onclick="viderPanier()">Vider le
+            panier</button>
+            <p id="total">Total : 0 FCFA</p>
+            <div id="derniereCommande"></div>
+            <button id="boutonClient" class="btn"
+            onclick="envoyerConfirmationClient()">
+                Envoyer confirmation au client
+            </button>
+            <button id="commande" class="btn"
+            onclick="afficherCommande()">Passer
+            la commande</button>
+        </nav>
+    </header>
+    <main>
+        <section id="produits">
+            <h2>Nos Produits</h2>  
+            <div class="conteneur"> 
+            <div class="carte">
+                <img src="./sac.jpg"alt="sac à main">
+                <h3>Sac à main</h3>
+                <p>20000FCFA</p>
+                <button class="btn"
+                onclick="acheter('Sac à main',20000)">Acheter</button>
+            </div>
+            <div class="carte">
+                <img src="chaussures.jpg"alt="chaussures">
+                <h3>chaussures</h3>
+                <p>15000FCFA</p>
+                <button class="btn"
+                onclick="acheter('chaussures',15000)">Acheter</button>
+            </div>  
+            <div class="carte">
+                <img src="montre.jpg"alt=Montre">
+                <h3>Montre</h3>
+                <p>10000</p>
+                <button class="btn"
+                onclick="acheter('montre',10000)">Acheter</button>
+            </div>
+            </div>
+        </section>
+    </main>
+    <footer id="contact">
+        <p>© 2026 Ma Boutique - Tous droits réservés.</p>
+    </footer>
+    <script>
+        let panier=
+        JSON.parse(localStorage.getItem("panier")) || [];
+        function acheter(produit,prix) {
+            let existe=
+            panier.find(function(article){
+                return article.nom ===
+            produit;
+            });
+            if (existe){
+                existe.quantite +=1;
+            } else {
+                panier.push({nom: produit,
+            prix:prix,quantite: 1});
+                }
+            localStorage.setItem("panier",
+            JSON.stringify(panier));
+            document.getElementById("panier").
+            innerHTML= "";
+            panier.forEach(function(article,index){
+            document.getElementById("panier").
+            innerHTML += article.nom + " - " +
+            article.prix + " FCFA - Quantite:"+article.quantite+
+            "<button onclick='diminuer(" +
+            index + ")'>moins</button> <button onclick='augmenter(" +index +
+            ")'>+</button><br>";
+            });
+            let total=0;
+            panier.forEach(function(article,index){
+                total=total + article.prix *
+                article.quantite;
+            });
+            document.getElementById("total").textContent=
+                 "total:"+ total +"FCA";
+            document.getElementById("compteur"
+            ).textContent=
+                    "Panier :" +
+            panier.length + " article(s)";
+            alert("Vous avez choisi : " + produit + " - " + prix +" FCFA !");
+        }
+        function augmenter(index){
+            panier[index].quantite += 1;
+            localStorage.setItem("panier",
+            JSON.stringify(panier));
+                location.reload();
+        }
+        function diminuer (index){
+            if (panier[index].quantite >
+        1) {
+            panier[index].quantite -=
+        1;
+           } else {
+               panier.splice(index,1);
+           }
+        localStorage.setItem("panier",
+        JSON.stringify(panier));
+                location.reload();
+        }
+        function supprimer(index){
+            panier.splice(index,1);
+            localStorage.setItem("panier",
+        JSON.stringify(panier));
+            location.reload();
+        }
+        function afficherCommande(){
+            if
+            (document.getElementById("formulaireCommande")) {
+                return;
+            }
+            const ancien =
+        document.getElementById("formulairecommande");
+            if (ancien) {
+                ancien.remove();
+            }
+        document.getElementById("commande")
+        .insertAdjacentHTML("afterend", `
+              <div 
+        id="formulaireCommande">
+                    <h3>Passer la Commande</h3>
+                      <input type="text"
+        id="nomClient" placeholder="Votre nom"><br>
+                      <input type="tel"
+        id="telephone" placeholder="Votre telephone"><br>
+                      <input type=text"
+        id="adresse"placeholder="votre adresse"><br>
+                    <button type="button"
+                    onclick="validerCommande()">Valider la commande </button>
+                </div>
+           `);
+         }
+        function validerCommande(){
+            let nom =
+        document.getElementById("nomClient").value;
+            let telephone =
+        document.getElementById("telephone").value;
+            let adresse =
+        document.getElementById("adresse").value;
+        if (nom === "" || telephone === ""
+        || adresse === "") {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+            let recap = "NOUVELLE COMMANDE\n\n";
+            recap += "Nom : " + nom + "\n";
+            recap += "Téléphone : " +
+            telephone + "\n";
+            recap += "Adresse : " + adresse +
+            "\n\n";
+            recap += "Produits :\n";
+         panier.forEach(function(article){
+                recap += article.nom + " X " +
+            article.quantite + "\n";
+            })
+            let totalCommande = 0;
+        panier.forEach(function(article){
+            totalCommande +=
+        article.prix * article.quantite;
+    })
+        recap += "\nTotal : " +
+        totalCommande.toLocaleString("fr-FR") + " FCFA";
+        localStorage.setItem("derniereCommande", JSON.stringify({
+             nom: nom,
+             telephone: telephone,
+             adresse: adresse,
+             produits: panier,
+             total: totalCommande
+        }));
+        alert(recap);
+        let messageWhatsapp = 
+        encodeURIComponent(recap);
+        window.open(
+        "https://wa.me/221762787129?text="
+        +messageWhatsapp,
+           "_blank"
+        );
+        let messageClient = 
+        encodeURIComponent(
+            "Bonjour " + nom + ",votre commande est bien confirmée.\n\n"
+        +
+            "Total : " +
+        totalCommande.toLocaleString("fr-FR") + "FCFA\n\n" +
+            "Merci pour votre commande !"
+        );
+        let boutonClient = 
+        document.createElement("button");
+        boutonClient.textContent = 
+        "Envoyer confirmation au client";
+        boutonClient.onclick = function()
+        {
+            window.open(
+                "https://wa.me/" + 
+        telephone + "?text=" +
+        messageClient,
+                "_blank"
+           );
+        };
+        document.getElementById("derniereCommande").appendChild(boutonClient);
+        }
+        function
+        envoyerConfirmationClient() {
+            let sauvegarde = 
+        localStorage.getItem("derniereCommande");
+            if (!sauvegarde) {
+                alert("Aucune commande trouvée.");
+                return;
+            }
+            let commande = 
+         JSON.parse(sauvegarde);
+                let messageClient = 
+                    "Bonjour " + commande. nom
+        + ", votre commande est bien confirmée.\n\n" +
+                    "Total : " + 
+        commande.total.toLocaleString("fr-FR") + "FCFA\n\n" +
+                 "Merci pour votre commande !";
+                window.open( 
+                    "https://wa.me/" + 
+        commande.telephone + 
+                "?text=" +          
+        encodeURIComponent(messageClient),
+                "_blank"
+           );
+        }
+        function
+        afficherDerniereCommande() {
+            let sauvegarde = 
+        localStorage.getItem("derniereCommande");
+            if (!sauvegarde) {
+                return;
+            }
+            let commande =
+        JSON.parse(sauvegarde);
+            let zone= 
+        document.getElementById("derniereCommande");
+            zone.innerHTML= 
+                "<h3>Derniere commande</h3>" +
+                "<p>Nom: " + commande.nom + "</p>" +
+                "<p>Téléphone : " + commande.telephone + "</p>" +
+                "<p>Adresse : " + commande.adresse + "</p>" +
+                "<p>Total : " +
+        commande.total.toLocaleString("fr-FR") +"FCFA</p>";
+        }
+        function viderPanier(){
+            panier=[];
+        document.getElementById("panier").
+        innerHTML= "";
+        document.getElementById("compteur"
+        ).textContent="Panier : 0 article(s)";
+        document.getElementById("total").
+        textContent="Total : 0 FCFA";
+        }
+        localStorage.setItem("panier",
+        JSON.stringify(panier));
+        if(panier.length=== 0) {
+        document.getElementById("panier").
+        innerHTML = "Votre panier est vide";
+        }
+        if(panier.length>0) {
+        document.getElementById("panier").
+        innerHTML= "";
+            let total = 0;
+        panier.forEach(function(article,index
+        ){
+        document.getElementById("panier").
+        innerHTML += article.nom + " -" +
+        article.prix.toLocaleString("fr-FR") + " FCFA- Quantité:"
+        + article.quantite +
+        " <button onclick='diminuer(" +
+         index + ")'>-</button>" +
+         " <button onclick='augmenter(" +
+        index + ") '>+</button>" +
+        " <button onclick='supprimer(" +
+        + index + ")'>Supprimer</ button><br>";
+                total=total +
+        article.prix *
+        article.quantite;
+            });
+        document.getElementById("compteur"
+        ).textContent =
+                "Panier : " +
+        panier.length + " article(s)";
+        document.getElementById("total").
+        textContent=
+                 "Total : " +
+                 total.toLocaleString("fr-FR") + " FCFA";
+        }
+        afficherDerniereCommande();
+    </script>    
+</body>
+</html>
+ 
